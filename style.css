@@ -60,6 +60,11 @@ body {
     background-color: #d8d8d8;
   }
   
+  .reviews {
+    margin: 40px;
+    padding: 10px;
+  }
+
   .review-form {
     width: 400px;
     padding: 20px;

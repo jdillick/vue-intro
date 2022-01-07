@@ -1,3 +1,109 @@
+Vue.component('feedback', {
+  template: `
+  <div class="feedback">
+    <h3>Let Us Know what you think!</h3>
+    <div v-if="errors.length > 0">
+      <p>Please Provide:</p>
+      <ul>
+        <li v-for="error of errors">{{error}}</li>
+      </ul>
+    </div>
+    <form class='review-form' @submit.prevent="onSubmit">
+      <label for="name">Name</label><input id="name" v-model="name" />
+      
+      <label for="comment">Comment</label><textarea id="comment" v-model="comment" />
+      <div>
+        <label for="rating">Rating</label>
+        <select id="rating" v-model.number="rating" placeholder="Rate">
+          <option disabled value="">Rate</option>
+          <option>1</option>
+          <option>2</option>
+          <option>3</option>
+          <option>4</option>
+          <option>5</option>
+        </select>
+      </div>
+
+      <button>Comment</button>
+    </form>
+  </div>
+  `,
+  
+  data() {
+    return {
+      name: null,
+      rating: null,
+      comment: null,
+      errors: [],
+    };
+  },
+
+  methods: {
+    onSubmit() {
+      const { name, rating, comment } = this;
+      if (name && rating && comment) {
+        this.$emit('feedback', { name, rating, comment});
+        this.name = null;
+        this.rating = null;
+        this.comment = null;
+        this.errors = [];
+      } else {
+        for (const required of ['name', 'rating', 'comment']) {
+          if (!this[required]) this.errors.push(required);
+        }
+      }
+    }
+  },
+});
+
+Vue.component('review', {
+  props: {
+    review: {
+      required: true,
+    }
+  },
+  template: `
+    <div class='review'>
+      <h3>{{review.name}}</h3>
+      <p>Rating: {{review.rating}}</p>
+      <p>Comment: {{review.comment}}</p>
+    </div>
+  `,
+});
+
+Vue.component('reviews', {
+  props: {
+    reviews: {
+      default() { return [
+        {
+          name: 'John Doe',
+          rating: 5,
+          comment: 'This is great!'
+        }
+      ] }
+    },
+  },
+
+  template: `
+  <section class="reviews">
+    <h2>Reviews</h2>
+    <p v-if="reviews.length < 1">There are no reviews yet.</p>
+    <ul v-if="reviews.length > 0">
+      <li v-for="review of reviews">
+        <review :review="review"></review>
+      </li>
+    </ul>
+    <feedback @feedback="addFeedback"></feedback>
+  </section>
+  `,
+
+  methods: {
+    addFeedback(feedback) {
+      this.reviews.push(feedback);
+    }
+  }
+});
+
 Vue.component('product-details', {
   props: {
     details: {
@@ -31,8 +137,10 @@ Vue.component("product", {
     <!-- <p v-if="inventory > 10">In stock</p>
     <p v-else-if="inventory > 0 && inventory <= 10">Almost out!</p>
     <p v-else>Out of stock</p> -->
+
     <p>Shipping: {{shipping}}</p>
     <product-details :details="details" />
+
     <div
       v-for="variant of variants"
       :key="variant.id"
@@ -82,7 +190,6 @@ Vue.component("product", {
   methods: {
     addToCart() {
       this.$emit('add-to-cart', this.variant);
-      // this.cart += 1;
     },
 
     setVariant(variant) {
